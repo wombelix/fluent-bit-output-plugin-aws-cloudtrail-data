@@ -23,9 +23,9 @@ The primary location is:
 [git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail](https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail)
 
 Mirrors are available on
-[Codeberg](https://codeberg.org/wombelix/fluent-bit-out_cloudtrail),
-[Gitlab](https://gitlab.com/wombelix/fluent-bit-out_cloudtrail) and
-[Github](https://github.com/wombelix/fluent-bit-out_cloudtrail).
+[Codeberg](https://codeberg.org/wombelix/fluent-bit-output-plugin-aws-cloudtrail),
+[Gitlab](https://gitlab.com/wombelix/fluent-bit-output-plugin-aws-cloudtrail) and
+[Github](https://github.com/wombelix/fluent-bit-output-plugin-aws-cloudtrail).
 
 ## Contribute
 
