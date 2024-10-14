@@ -9,7 +9,7 @@ SPDX-License-Identifier: Apache-2.0
 Golang based plugin to Ingests events into AWS CloudTrail Lake by calling
 [PutAuditEvents](https://docs.aws.amazon.com/awscloudtraildata/latest/APIReference/API_PutAuditEvents.html).
 
-[![REUSE status](https://api.reuse.software/badge/git.sr.ht/~wombelix/fluent-bit-out_cloudtrail)](https://api.reuse.software/info/git.sr.ht/~wombelix/fluent-bit-out_cloudtrail)
+[![REUSE status](https://api.reuse.software/badge/git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail)](https://api.reuse.software/info/git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail)
 
 ## Table of Contents
 
