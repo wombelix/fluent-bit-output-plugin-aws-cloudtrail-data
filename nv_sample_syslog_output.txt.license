@@ -1,8 +1,3 @@
-SPDX-FileCopyrightText: 2021-2024 NeuVector Inc
+SPDX-FileCopyrightText: 2024 Dominik Wombacher <dominik@wombacher.cc>
 
 SPDX-License-Identifier: Apache-2.0
-
-#####
-# NeuVector Sample Syslog Output
-# Source: https://open-docs.neuvector.com/5.2/reporting/reporting#sample-syslog-output
-#####
