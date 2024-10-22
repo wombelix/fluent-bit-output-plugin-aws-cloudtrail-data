@@ -1,7 +1,7 @@
 <!--
 SPDX-FileCopyrightText: 2024 Dominik Wombacher <dominik@wombacher.cc>
 
-SPDX-License-Identifier: Apache-2.0
+SPDX-License-Identifier: CC0-1.0
 -->
 
 # Fluent Bit: Output Plugin for AWS CloudTrail
