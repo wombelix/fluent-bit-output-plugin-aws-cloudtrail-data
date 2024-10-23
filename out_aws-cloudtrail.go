@@ -9,7 +9,10 @@ package main
 
 import (
 	"C"
+	"context"
 	"encoding/json"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"time"
 	"unsafe"
 
@@ -19,9 +22,9 @@ import (
 )
 
 const (
-	Version = "v0.0.1"
+	Version     = "v0.0.1"
 	eventSource = "fluent-bit-output-plugin-aws-cloudtrail"
-	eventName = "Fluent Bit: Output Plugin for AWS CloudTrail"
+	eventName   = "Fluent Bit: Output Plugin for AWS CloudTrail"
 )
 
 //export FLBPluginRegister
@@ -54,18 +57,34 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	// Create Fluent Bit decoder
 	dec := output.NewDecoder(data, int(length))
 
-	// Define vars needed as part of the 'PutAuditEvents' call
+	// Load AWS Config and get Caller ID from STS
+	sdkCtx := context.Background()
+	sdkConfig, err := config.LoadDefaultConfig(sdkCtx)
+	if err != nil {
+		logrus.Errorf("Couldn't load AWS default configuration. Error: %v", err)
+		return output.FLB_ERROR
+	}
+
+	client := sts.NewFromConfig(sdkConfig)
+	input := &sts.GetCallerIdentityInput{}
+
+	req, err := client.GetCallerIdentity(sdkCtx, input)
+	if err != nil {
+		logrus.Errorf("AWS GetCallerIdentity failed. Error: %v", err)
+		return output.FLB_ERROR
+	}
+
+	if logrus.GetLevel() == logrus.DebugLevel {
+		logrus.Debugf("AWS Region: %s, AWS Account: %s, AWS UserId: %s", *req.Account, *req.UserId, sdkConfig.Region)
+	}
+
+	userIdentityType := "User"
+	userIdentityPrincipalId := *req.UserId
+	recipientAccountId := *req.Account
+
 	putAuditEvents := &PutAuditEvents{
 		AuditEvents: []AuditEvent{},
 	}
-
-	// ToDo:
-	//  Figure out if userIdentityType can always stay 'User' or if there are conditions
-	//	UserIdentity has to be filled with data from current aws session / identity
-	//	RecipientAccountId account where the events get pushed to
-	userIdentityType := "User"
-	userIdentityPrincipalId := "AROA123456789EXAMPLE:ExampleRole"
-	recipientAccountId := "111122223333"
 
 	// Iterate Records
 	count = 0
