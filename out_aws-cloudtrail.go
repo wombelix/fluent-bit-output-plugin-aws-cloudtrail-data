@@ -11,11 +11,15 @@ import (
 	"C"
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 	"unsafe"
 
 	"github.com/fluent/fluent-bit-go/output"
+	"github.com/gofrs/uuid/v5"
 )
+
+var Version = "v0.0.1"
 
 //export FLBPluginRegister
 func FLBPluginRegister(def unsafe.Pointer) int {
@@ -26,6 +30,10 @@ func FLBPluginRegister(def unsafe.Pointer) int {
 //export FLBPluginInit
 func FLBPluginInit(plugin unsafe.Pointer) int {
 	// Gets called only once for each instance you have configured.
+
+	param := output.FLBPluginConfigKey(plugin, "param")
+	fmt.Printf("[flb-go] plugin parameter = '%s'\n", param)
+
 	return output.FLB_OK
 }
 
@@ -38,6 +46,14 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 
 	// Create Fluent Bit decoder
 	dec := output.NewDecoder(data, int(length))
+
+	// Define vars needed as part of the 'PutAuditEvents' call
+	putAuditEvents := &PutAuditEvents{
+		AuditEvents: []AuditEvent{},
+	}
+	userIdentityType := "User"
+	userIdentityPrincipalId := "AROA123456789EXAMPLE:ExampleRole"
+	recipientAccountId := "111122223333"
 
 	// Iterate Records
 	count = 0
@@ -59,19 +75,56 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 			timestamp = time.Now()
 		}
 
-		js, err := createJSON(record)
-		if err != nil {
-			// Report and skip faulty record
-			fmt.Printf("%v\n", err)
-			continue
+		// Needs logic to output only in debug mode, to noise for info
+		fmt.Printf("[%d] %s: [%s, {", count, C.GoString(tag),
+			timestamp.String())
+		for k, v := range parseMap(record) {
+			fmt.Printf("\"%s\": %v, ", k, v)
+		}
+		fmt.Printf("}\n")
+
+		// Define vars needed as part of the 'PutAuditEvents' call
+		timestampRFC3339 := timestamp.Format(time.RFC3339)
+		uuidAuditEvent := generateUUID()
+		uuidEventData := generateUUID()
+
+		eventData := &EventData{
+			Version: Version,
+			UserIdentity: UserIdentity{
+				Type:        userIdentityType,
+				PrincipalId: userIdentityPrincipalId,
+			},
+			EventSource:         "fluent-bit-output-plugin-aws-cloudtrail",
+			EventName:           "Fluent Bit: Output Plugin for AWS CloudTrail",
+			EventTime:           timestampRFC3339,
+			UID:                 uuidEventData,
+			RecipientAccountId:  recipientAccountId,
+			AdditionalEventData: parseMap(record),
 		}
 
-		fmt.Printf("[%d] %s: [%s, {", count, C.GoString(tag), timestamp.String())
-		fmt.Printf("%s", js)
-		fmt.Printf("}\n")
+		eventDataJson, err := json.Marshal(eventData)
+		if err != nil {
+			log.Printf("error creating message: %s", err)
+		}
+
+		auditEvent := &AuditEvent{
+			EventData: string(eventDataJson),
+			Id:        uuidAuditEvent,
+		}
+
+		putAuditEvents.AuditEvents = append(
+			putAuditEvents.AuditEvents, *auditEvent)
 
 		count++
 	}
+
+	// Needs logging logic to provide JSON output if fluentbit runs with debug flag
+	//js, err := json.MarshalIndent(putAuditEvents, "", "  ")
+	//js, err := json.Marshal(putAuditEvents)
+	//if err != nil {
+	//	log.Fatalf("error creating message: %w", err)
+	//}
+	//fmt.Printf("%s", js)
 
 	// Return options:
 	//
@@ -87,6 +140,16 @@ func FLBPluginExit() int {
 }
 
 func main() {
+}
+
+func generateUUID() string {
+	// Create a Version 4 UUID.
+	uuidV4, err := uuid.NewV4()
+	if err != nil {
+		log.Printf("failed to generate UUID: %s", err) // ToDo: Error loggig but not failing at this point, FLBPluginFlushCtx has to return output.FLB_ERROR
+	}
+
+	return uuidV4.String()
 }
 
 // SPDX-FileCopyrightText: 2022 Stefan Majer <stefan.majer@f-i-ts.de>
@@ -121,33 +184,28 @@ func createJSON(record map[interface{}]interface{}) ([]byte, error) {
 	return js, nil
 }
 
-// ToDo:
-//
-//	id has to be unique and generated for each auditEvents put
+type PutAuditEvents struct {
+	AuditEvents []AuditEvent `json:"auditEvents"`
+}
+
 type AuditEvent struct {
-	EventData EventData `json:"eventData"`
-	Id        string    `json:"id"`
+	EventData string `json:"eventData"`
+	Id        string `json:"id"`
 }
 
 // ToDo:
 //
-//	Version should match the plugin release version
 //	UserIdentity has to be filled with data from current aws session / identity
-//	EventTime has to be the current time in form of '2024-10-10T11:16:08Z'
-//	UID has to be unique and generated for each auditEvents put
-//	AwsRegion region where the events get pushed to
 //	RecipientAccountId account where the events get pushed to
-//	AdditionalEventData contains the payload, received from NeuVector as json in the syslog message
 type EventData struct {
-	Version             string       `json:"page"`
+	Version             string       `json:"version"`
 	UserIdentity        UserIdentity `json:"userIdentity"`
 	EventSource         string       `json:"eventSource"`
 	EventName           string       `json:"eventName"`
 	EventTime           string       `json:"eventTime"`
 	UID                 string
-	AwsRegion           string   `json:"awsRegion"`
-	RecipientAccountId  string   `json:"recipientAccountId"`
-	AdditionalEventData []string `json:"additionalEventData"`
+	RecipientAccountId  string                 `json:"recipientAccountId"`
+	AdditionalEventData map[string]interface{} `json:"additionalEventData"`
 }
 
 type UserIdentity struct {
