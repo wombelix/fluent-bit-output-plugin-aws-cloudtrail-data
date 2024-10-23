@@ -12,6 +12,8 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/cloudtraildata"
+	"github.com/aws/aws-sdk-go-v2/service/cloudtraildata/types"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
 	"os"
 	"time"
@@ -70,23 +72,23 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	dec := output.NewDecoder(data, int(length))
 
 	// Load AWS Config from default chain
-	sdkCtx := context.Background()
-	sdkConfig, err := config.LoadDefaultConfig(sdkCtx)
+	awsSdkCtx := context.Background()
+	awsSdkConfig, err := config.LoadDefaultConfig(awsSdkCtx)
 	if err != nil {
 		logrus.Errorf("Couldn't load AWS default configuration. Error: %v", err)
 		return output.FLB_ERROR
 	}
 
 	// Create STS Client and retrieve CallerIdentity
-	client := sts.NewFromConfig(sdkConfig)
-	input := &sts.GetCallerIdentityInput{}
-	req, err := client.GetCallerIdentity(sdkCtx, input)
+	stsClient := sts.NewFromConfig(awsSdkConfig)
+	stsInput := &sts.GetCallerIdentityInput{}
+	req, err := stsClient.GetCallerIdentity(awsSdkCtx, stsInput)
 	if err != nil {
 		logrus.Errorf("AWS GetCallerIdentity failed. Error: %v", err)
 		return output.FLB_ERROR
 	}
 
-	logrus.Debugf("AWS Account: %s, AWS UserId: %s, AWS Region: %s", *req.Account, *req.UserId, sdkConfig.Region)
+	logrus.Debugf("AWS Account: %s, AWS UserId: %s, AWS Region: %s", *req.Account, *req.UserId, awsSdkConfig.Region)
 
 	/*
 		Hardcoded to 'User' for now, unclear how it's used and what other values make sense
@@ -99,8 +101,9 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	recipientAccountId := *req.Account
 
 	// One AuditEvent appended per Fluent Bit record in loop
-	putAuditEvents := &PutAuditEvents{
-		AuditEvents: []AuditEvent{},
+	putAuditEventsInput := &cloudtraildata.PutAuditEventsInput{
+		AuditEvents: []types.AuditEvent{},
+		ChannelArn:  &params.ChannelArn,
 	}
 
 	// Iterate Records
@@ -165,29 +168,47 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 			continue
 		}
 
-		auditEvent := &AuditEvent{
-			EventData: string(eventDataJson),
-			Id:        uuidAuditEvent.String(),
+		eventDataJsonString := string(eventDataJson)
+		uuidAuditEventString := uuidAuditEvent.String()
+		auditEvent := &types.AuditEvent{
+			EventData: &eventDataJsonString,
+			Id:        &uuidAuditEventString,
 		}
 
-		putAuditEvents.AuditEvents = append(
-			putAuditEvents.AuditEvents, *auditEvent)
+		putAuditEventsInput.AuditEvents = append(
+			putAuditEventsInput.AuditEvents, *auditEvent)
 
 		count++
 	}
 
-	// ToDo: Add logic for cloudtrail-data put-audit-events
+	// Create CloudTrailData Client from discovered AWS Config and call 'PutAuditEvents'
+	cloudtrailDataClient := cloudtraildata.NewFromConfig(awsSdkConfig)
+	putAuditEventsOutput, err := cloudtrailDataClient.PutAuditEvents(awsSdkCtx, putAuditEventsInput)
+	if err != nil {
+		logrus.Errorf("AWS CloudTrail Data 'PutAuditEvents' failed.\nError: %v\nData: %v", err, putAuditEventsInput)
+		return output.FLB_ERROR
+	}
 
-	// Not sure if I want it like that, worth re-thinking / re-factoring later
-	// Loggig to convert to Json and push to CloudTrail is still missing
-	// Debug Json output and error in case of conversion issues should be handled then
-	if logrus.GetLevel() == logrus.DebugLevel {
-		js, err := json.MarshalIndent(putAuditEvents, "", "  ")
-		if err != nil {
-			logrus.Errorf("Error converting 'putAuditEvents' to JSON.\nError: %v\nData: %s", err, putAuditEvents)
-			return output.FLB_ERROR
+	// Handle 'PutAuditEvents' response, log successful and failed events
+	logrus.Infof("Successful processed Audit Events: %d", len(putAuditEventsOutput.Successful))
+	for _, event := range putAuditEventsOutput.Successful {
+		logrus.Debugf("CloudTrail EventId: %s, Fluent Bit Id: %s", *event.EventID, *event.Id)
+	}
+
+	if len(putAuditEventsOutput.Failed) > 0 {
+		logrus.Errorf("Failed Audit Events: %d", len(putAuditEventsOutput.Failed))
+		for _, event := range putAuditEventsOutput.Failed {
+			logrus.Errorf("Fluent Bit Id: %s, Error Code: %s, Error Message: %s", *event.Id, *event.ErrorCode, *event.ErrorMessage)
 		}
-		logrus.Debugf("'putAuditEvents' after JSON encoding:\n%s", js)
+	}
+
+	// JSON output because easier parsing of 'putAuditEventsInput'
+	if logrus.GetLevel() == logrus.DebugLevel {
+		putAuditEventsInputJson, err := json.MarshalIndent(putAuditEventsInput, "", "  ")
+		if err != nil {
+			logrus.Errorf("Error converting 'putAuditEvents' to JSON.\nError: %v\nData: %v", err, putAuditEventsInput)
+		}
+		logrus.Debugf("'putAuditEventsInput' JSON encoded:\n%s", putAuditEventsInputJson)
 	}
 
 	// Return options:
