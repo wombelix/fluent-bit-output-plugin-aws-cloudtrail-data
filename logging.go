@@ -1,5 +1,5 @@
 // SPDX-FileCopyrightText: 2024 Dominik Wombacher <dominik@wombacher.cc>
-// SPDX-FileCopyrightText: Copyright 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+// SPDX-FileCopyrightText: 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //
 // SPDX-License-Identifier: Apache-2.0
 
@@ -20,9 +20,9 @@ const (
 )
 
 /*
-SetupLogger sets up Logrus with the log level determined by the Fluent Bit Env Var
-https://github.com/aws/amazon-kinesis-firehose-for-fluent-bit/blob/mainline/plugins/plugins.go
- */
+	SetupLogger sets up Logrus with the log level determined by the Fluent Bit Env Var
+	https://github.com/aws/amazon-kinesis-firehose-for-fluent-bit/blob/mainline/plugins/plugins.go
+*/
 func SetupLogger() {
 	logrus.SetOutput(os.Stdout)
 
