@@ -6,6 +6,10 @@ SPDX-License-Identifier: CC0-1.0
 
 # Fluent Bit: Output Plugin for AWS CloudTrail
 
+**Warning: In development, not yet functional!**
+
+-----
+
 Golang based plugin to Ingests events into AWS CloudTrail Lake by calling
 [PutAuditEvents](https://docs.aws.amazon.com/awscloudtraildata/latest/APIReference/API_PutAuditEvents.html).
 
