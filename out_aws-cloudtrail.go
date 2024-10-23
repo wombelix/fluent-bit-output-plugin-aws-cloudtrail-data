@@ -8,15 +8,16 @@
 package main
 
 import (
+	"bytes"
 	"C"
 	"encoding/json"
 	"fmt"
-	"log"
 	"time"
 	"unsafe"
 
 	"github.com/fluent/fluent-bit-go/output"
 	"github.com/gofrs/uuid/v5"
+	"github.com/sirupsen/logrus"
 )
 
 var Version = "v0.0.1"
@@ -31,8 +32,12 @@ func FLBPluginRegister(def unsafe.Pointer) int {
 func FLBPluginInit(plugin unsafe.Pointer) int {
 	// Gets called only once for each instance you have configured.
 
-	param := output.FLBPluginConfigKey(plugin, "param")
-	fmt.Printf("[flb-go] plugin parameter = '%s'\n", param)
+	/*
+		param := output.FLBPluginConfigKey(plugin, "param")
+		fmt.Printf("[flb-go] plugin parameter = '%s'\n", param)
+	*/
+
+	SetupLogger()
 
 	return output.FLB_OK
 }
@@ -71,22 +76,30 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 		case uint64:
 			timestamp = time.Unix(int64(t), 0)
 		default:
-			fmt.Println("time provided invalid, defaulting to now.")
+			logrus.Warning("time provided invalid, defaulting to now.")
 			timestamp = time.Now()
 		}
 
-		// Needs logic to output only in debug mode, to noise for info
-		fmt.Printf("[%d] %s: [%s, {", count, C.GoString(tag),
-			timestamp.String())
-		for k, v := range parseMap(record) {
-			fmt.Printf("\"%s\": %v, ", k, v)
+		if logrus.GetLevel() == logrus.DebugLevel {
+			printRecord(count, tag, timestamp, record)
 		}
-		fmt.Printf("}\n")
 
 		// Define vars needed as part of the 'PutAuditEvents' call
 		timestampRFC3339 := timestamp.Format(time.RFC3339)
-		uuidAuditEvent := generateUUID()
-		uuidEventData := generateUUID()
+
+		// ToDo: Refactor to reduce code redundancy
+		uuidAuditEvent, err := uuid.NewV4()
+		if err != nil {
+			logrus.Errorf("Failed to generate UUID (uuidAuditEvent), skipping record.\nError: %v\nRecord: %s",
+				err, recordToString(count, tag, timestamp, record))
+			continue
+		}
+		uuidEventData, err := uuid.NewV4()
+		if err != nil {
+			logrus.Errorf("Failed to generate UUID (uuidEventData), skipping record.\nError: %v\nRecord: %s",
+				err, recordToString(count, tag, timestamp, record))
+			continue
+		}
 
 		eventData := &EventData{
 			Version: Version,
@@ -97,19 +110,21 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 			EventSource:         "fluent-bit-output-plugin-aws-cloudtrail",
 			EventName:           "Fluent Bit: Output Plugin for AWS CloudTrail",
 			EventTime:           timestampRFC3339,
-			UID:                 uuidEventData,
+			UID:                 uuidEventData.String(),
 			RecipientAccountId:  recipientAccountId,
 			AdditionalEventData: parseMap(record),
 		}
 
 		eventDataJson, err := json.Marshal(eventData)
 		if err != nil {
-			log.Printf("error creating message: %s", err)
+			logrus.Errorf("Error converting 'eventData' to json, skipping record.\nError: %v\nRecord: %s",
+				err, recordToString(count, tag, timestamp, record))
+			continue
 		}
 
 		auditEvent := &AuditEvent{
 			EventData: string(eventDataJson),
-			Id:        uuidAuditEvent,
+			Id:        uuidAuditEvent.String(),
 		}
 
 		putAuditEvents.AuditEvents = append(
@@ -118,13 +133,17 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 		count++
 	}
 
-	// Needs logging logic to provide JSON output if fluentbit runs with debug flag
-	//js, err := json.MarshalIndent(putAuditEvents, "", "  ")
-	//js, err := json.Marshal(putAuditEvents)
-	//if err != nil {
-	//	log.Fatalf("error creating message: %w", err)
-	//}
-	//fmt.Printf("%s", js)
+	// Not sure if I want it like that, worth re-thinking / re-factoring later
+	// Loggig to convert to Json and push to CloudTrail is still missing
+	// Debug Json output and error in case of conversion issues should be handled then
+	if logrus.GetLevel() == logrus.DebugLevel {
+		js, err := json.MarshalIndent(putAuditEvents, "", "  ")
+		if err != nil {
+			logrus.Errorf("Error converting 'putAuditEvents' to JSON.\nError: %v\nData: %s", err, putAuditEvents)
+			return output.FLB_ERROR
+		}
+		logrus.Debugf("'putAuditEvents' after JSON encoding:\n%s", js)
+	}
 
 	// Return options:
 	//
@@ -142,14 +161,24 @@ func FLBPluginExit() int {
 func main() {
 }
 
-func generateUUID() string {
-	// Create a Version 4 UUID.
-	uuidV4, err := uuid.NewV4()
-	if err != nil {
-		log.Printf("failed to generate UUID: %s", err) // ToDo: Error loggig but not failing at this point, FLBPluginFlushCtx has to return output.FLB_ERROR
-	}
+func recordToString(count int, tag *C.char, timestamp time.Time, record map[interface{}]interface{}) string {
+	var buffer bytes.Buffer
 
-	return uuidV4.String()
+	buffer.WriteString(fmt.Sprintf("[%d] %s: [%s, {", count, C.GoString(tag), timestamp.String()))
+	for k, v := range parseMap(record) {
+		buffer.WriteString(fmt.Sprintf("\"%s\": %v, ", k, v))
+	}
+	buffer.WriteString("}\n")
+
+	return buffer.String()
+}
+
+func printRecord(count int, tag *C.char, timestamp time.Time, record map[interface{}]interface{}) {
+	fmt.Printf("[%d] %s: [%s, {", count, C.GoString(tag), timestamp.String())
+	for k, v := range parseMap(record) {
+		fmt.Printf("\"%s\": %v, ", k, v)
+	}
+	fmt.Print("}\n")
 }
 
 // SPDX-FileCopyrightText: 2022 Stefan Majer <stefan.majer@f-i-ts.de>
@@ -179,7 +208,7 @@ func createJSON(record map[interface{}]interface{}) ([]byte, error) {
 
 	js, err := json.Marshal(m)
 	if err != nil {
-		return nil, fmt.Errorf("error creating message: %w", err)
+		return nil, fmt.Errorf("error creating message: %v", err)
 	}
 	return js, nil
 }
