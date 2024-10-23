@@ -58,6 +58,11 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	putAuditEvents := &PutAuditEvents{
 		AuditEvents: []AuditEvent{},
 	}
+
+	// ToDo:
+	//  Figure out if userIdentityType can always stay 'User' or if there are conditions
+	//	UserIdentity has to be filled with data from current aws session / identity
+	//	RecipientAccountId account where the events get pushed to
 	userIdentityType := "User"
 	userIdentityPrincipalId := "AROA123456789EXAMPLE:ExampleRole"
 	recipientAccountId := "111122223333"

@@ -18,10 +18,6 @@ type UserIdentity struct {
 	PrincipalId string `json:"principalId"`
 }
 
-// ToDo:
-//
-//	UserIdentity has to be filled with data from current aws session / identity
-//	RecipientAccountId account where the events get pushed to
 type EventData struct {
 	Version             string       `json:"version"`
 	UserIdentity        UserIdentity `json:"userIdentity"`

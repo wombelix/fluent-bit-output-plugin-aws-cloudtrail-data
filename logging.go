@@ -1,4 +1,3 @@
-// SPDX-FileCopyrightText: 2024 Dominik Wombacher <dominik@wombacher.cc>
 // SPDX-FileCopyrightText: 2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
 //
 // SPDX-License-Identifier: Apache-2.0
