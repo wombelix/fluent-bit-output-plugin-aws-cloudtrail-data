@@ -1,0 +1,7 @@
+# SPDX-FileCopyrightText: 2024 Dominik Wombacher <dominik@wombacher.cc>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+[tool.commitizen]
+version = "0.1.0"
+update_changelog_on_bump = true
