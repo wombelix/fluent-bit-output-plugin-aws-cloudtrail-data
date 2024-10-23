@@ -25,9 +25,9 @@ import (
 )
 
 const (
-	Version     = "v0.0.1"
-	eventSource = "fluent-bit-output-plugin-aws-cloudtrail"
-	eventName   = "Fluent Bit: Output Plugin for AWS CloudTrail"
+	Version     = "v0.0.0"
+	eventSource = "fluent-bit-output-plugin-aws-cloudtrail-data"
+	eventName   = "Fluent Bit: Output Plugin for AWS CloudTrail Data Service"
 )
 
 // Global vars, only set in 'FLBPluginInit', then expected to be read-only
@@ -36,7 +36,8 @@ var params = &Params{}
 //export FLBPluginRegister
 func FLBPluginRegister(def unsafe.Pointer) int {
 	// Gets called only once when the plugin.so is loaded
-	return output.FLBPluginRegister(def, "aws-cloudtrail", "Fluent Bit output plugin to ingest events into AWS CloudTrail Lake")
+	return output.FLBPluginRegister(def, "aws-cloudtrail-data",
+		"Fluent Bit output plugin to ingest events into AWS CloudTrail through the CloudTrail Data Service")
 }
 
 //export FLBPluginInit
