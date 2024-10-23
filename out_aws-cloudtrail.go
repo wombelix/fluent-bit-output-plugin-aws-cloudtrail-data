@@ -20,7 +20,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-var Version = "v0.0.1"
+const (
+	Version = "v0.0.1"
+	eventSource = "fluent-bit-output-plugin-aws-cloudtrail"
+	eventName = "Fluent Bit: Output Plugin for AWS CloudTrail"
+)
 
 //export FLBPluginRegister
 func FLBPluginRegister(def unsafe.Pointer) int {
@@ -107,8 +111,8 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 				Type:        userIdentityType,
 				PrincipalId: userIdentityPrincipalId,
 			},
-			EventSource:         "fluent-bit-output-plugin-aws-cloudtrail",
-			EventName:           "Fluent Bit: Output Plugin for AWS CloudTrail",
+			EventSource:         eventSource,
+			EventName:           eventName,
 			EventTime:           timestampRFC3339,
 			UID:                 uuidEventData.String(),
 			RecipientAccountId:  recipientAccountId,
