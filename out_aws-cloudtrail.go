@@ -37,11 +37,6 @@ func FLBPluginRegister(def unsafe.Pointer) int {
 func FLBPluginInit(plugin unsafe.Pointer) int {
 	// Gets called only once for each instance you have configured.
 
-	/*
-		param := output.FLBPluginConfigKey(plugin, "param")
-		fmt.Printf("[flb-go] plugin parameter = '%s'\n", param)
-	*/
-
 	SetupLogger()
 
 	return output.FLB_OK
@@ -57,7 +52,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 	// Create Fluent Bit decoder
 	dec := output.NewDecoder(data, int(length))
 
-	// Load AWS Config and get Caller ID from STS
+	// Load AWS Config from default chain
 	sdkCtx := context.Background()
 	sdkConfig, err := config.LoadDefaultConfig(sdkCtx)
 	if err != nil {
@@ -65,9 +60,9 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 		return output.FLB_ERROR
 	}
 
+	// Create STS Client and retrieve CallerIdentity
 	client := sts.NewFromConfig(sdkConfig)
 	input := &sts.GetCallerIdentityInput{}
-
 	req, err := client.GetCallerIdentity(sdkCtx, input)
 	if err != nil {
 		logrus.Errorf("AWS GetCallerIdentity failed. Error: %v", err)
@@ -78,10 +73,17 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 		logrus.Debugf("AWS Region: %s, AWS Account: %s, AWS UserId: %s", *req.Account, *req.UserId, sdkConfig.Region)
 	}
 
+	/*
+		Hardcoded to 'User' for now, unclear how it's used and what other values make sense
+		CloudTrail Lake Schema defines it as 'string' with a max length of 128 chars.
+	*/
 	userIdentityType := "User"
+
+	// Values come from AWS STS GetCallerIdentity
 	userIdentityPrincipalId := *req.UserId
 	recipientAccountId := *req.Account
 
+	// One AuditEvent appended per Fluent Bit record in loop
 	putAuditEvents := &PutAuditEvents{
 		AuditEvents: []AuditEvent{},
 	}
@@ -95,6 +97,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 			break
 		}
 
+		// Convert provided time or use Now for timestamp
 		var timestamp time.Time
 		switch t := ts.(type) {
 		case output.FLBTime:
@@ -110,7 +113,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 			printRecord(count, tag, timestamp, record)
 		}
 
-		// Define vars needed as part of the 'PutAuditEvents' call
+		// 'eventTime' in CloudTrail event schema requires format 'yyyy-MM-DDTHH:mm:ssZ'
 		timestampRFC3339 := timestamp.Format(time.RFC3339)
 
 		// ToDo: Refactor to reduce code redundancy
@@ -159,6 +162,8 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 
 		count++
 	}
+
+	// ToDo: Add logic for cloudtrail-data put-audit-events
 
 	// Not sure if I want it like that, worth re-thinking / re-factoring later
 	// Loggig to convert to Json and push to CloudTrail is still missing
