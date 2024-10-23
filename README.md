@@ -4,13 +4,14 @@ SPDX-FileCopyrightText: 2024 Dominik Wombacher <dominik@wombacher.cc>
 SPDX-License-Identifier: CC0-1.0
 -->
 
-# Fluent Bit: Output Plugin for AWS CloudTrail
+# Fluent Bit: Output Plugin for AWS CloudTrail Data Service
 
 **Warning: In development, not yet functional!**
 
 -----
 
-Golang based plugin to Ingests events into AWS CloudTrail Lake by calling
+Golang based plugin to ingest events into AWS CloudTrail
+through the CloudTrail Data Service by calling
 [PutAuditEvents](https://docs.aws.amazon.com/awscloudtraildata/latest/APIReference/API_PutAuditEvents.html).
 
 [![REUSE status](https://api.reuse.software/badge/git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail)](https://api.reuse.software/info/git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail)
@@ -24,12 +25,13 @@ Golang based plugin to Ingests events into AWS CloudTrail Lake by calling
 ## Source
 
 The primary location is:
-[git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail](https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail)
+[git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data](https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data)
 
 Mirrors are available on
-[Codeberg](https://codeberg.org/wombelix/fluent-bit-output-plugin-aws-cloudtrail),
-[Gitlab](https://gitlab.com/wombelix/fluent-bit-output-plugin-aws-cloudtrail) and
-[Github](https://github.com/wombelix/fluent-bit-output-plugin-aws-cloudtrail).
+[Codeberg](https://codeberg.org/wombelix/fluent-bit-output-plugin-aws-cloudtrail-data),
+[Gitlab](https://gitlab.com/wombelix/fluent-bit-output-plugin-aws-cloudtrail-data)
+and
+[Github](https://github.com/wombelix/fluent-bit-output-plugin-aws-cloudtrail-data).
 
 ## Contribute
 
