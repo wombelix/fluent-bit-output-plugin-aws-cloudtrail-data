@@ -4,6 +4,10 @@
 
 package main
 
+type Params struct {
+	ChannelArn string
+}
+
 type PutAuditEvents struct {
 	AuditEvents []AuditEvent `json:"auditEvents"`
 }

@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sts"
+	"os"
 	"time"
 	"unsafe"
 
@@ -27,6 +28,9 @@ const (
 	eventName   = "Fluent Bit: Output Plugin for AWS CloudTrail"
 )
 
+// Global vars, only set in 'FLBPluginInit', then expected to be read-only
+var params = &Params{}
+
 //export FLBPluginRegister
 func FLBPluginRegister(def unsafe.Pointer) int {
 	// Gets called only once when the plugin.so is loaded
@@ -38,6 +42,19 @@ func FLBPluginInit(plugin unsafe.Pointer) int {
 	// Gets called only once for each instance you have configured.
 
 	SetupLogger()
+
+	// CloudTrail Lake Channel Arn mandatory for 'PutAuditEvents'
+	channelArnParam := output.FLBPluginConfigKey(plugin, "ChannelArn")
+	channelArnEnvVar := os.Getenv("AWS_CLOUDTRAIL_DATA_CHANNELARN")
+	if channelArnParam != "" {
+		params.ChannelArn = channelArnParam
+	} else if channelArnEnvVar != "" {
+		params.ChannelArn = channelArnEnvVar
+	} else {
+		logrus.Error("Environment Variable 'AWS_CLOUDTRAIL_DATA_CHANNELARN' or Fluent Bit plugin parameter 'ChannelArn' required.")
+		return output.FLB_ERROR
+	}
+	logrus.Debugf("ChannelArn: %s", params.ChannelArn)
 
 	return output.FLB_OK
 }
@@ -69,9 +86,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 		return output.FLB_ERROR
 	}
 
-	if logrus.GetLevel() == logrus.DebugLevel {
-		logrus.Debugf("AWS Region: %s, AWS Account: %s, AWS UserId: %s", *req.Account, *req.UserId, sdkConfig.Region)
-	}
+	logrus.Debugf("AWS Account: %s, AWS UserId: %s, AWS Region: %s", *req.Account, *req.UserId, sdkConfig.Region)
 
 	/*
 		Hardcoded to 'User' for now, unclear how it's used and what other values make sense
@@ -109,9 +124,7 @@ func FLBPluginFlushCtx(ctx, data unsafe.Pointer, length C.int, tag *C.char) int 
 			timestamp = time.Now()
 		}
 
-		if logrus.GetLevel() == logrus.DebugLevel {
-			printRecord(count, tag, timestamp, record)
-		}
+		logrus.Debug(recordToString(count, tag, timestamp, record))
 
 		// 'eventTime' in CloudTrail event schema requires format 'yyyy-MM-DDTHH:mm:ssZ'
 		timestampRFC3339 := timestamp.Format(time.RFC3339)
