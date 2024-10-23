@@ -3,9 +3,8 @@
 # SPDX-License-Identifier: CC0-1.0
 
 [tool.commitizen]
-version = "v0.0.0"
+name = "cz_conventional_commits"
+tag_format = "v$version"
+version_scheme = "semver"
+version = "0.0.0"
 update_changelog_on_bump = true
-version_files = [
-    "out_aws-cloudtrail.go:Version"
-]
-tag_format = "v$major.$minor.$patch$prerelease"
