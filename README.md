@@ -6,15 +6,11 @@ SPDX-License-Identifier: CC0-1.0
 
 # Fluent Bit: Output Plugin for AWS CloudTrail Data Service
 
-**Warning: In development, not yet functional!**
-
------
-
-Golang based plugin to ingest events into AWS CloudTrail
+Golang based plugin to ingest events into AWS CloudTrail Lake
 through the CloudTrail Data Service by calling
 [PutAuditEvents](https://docs.aws.amazon.com/awscloudtraildata/latest/APIReference/API_PutAuditEvents.html).
 
-[![REUSE status](https://api.reuse.software/badge/git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail)](https://api.reuse.software/info/git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail)
+[![REUSE status](https://api.reuse.software/badge/git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data)](https://api.reuse.software/info/git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data)
 
 ## Table of Contents
 
