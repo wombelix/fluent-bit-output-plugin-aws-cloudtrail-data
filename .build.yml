@@ -1,0 +1,44 @@
+# SPDX-FileCopyrightText: 2024 Dominik Wombacher <dominik@wombacher.cc>
+#
+# SPDX-License-Identifier: CC0-1.0
+
+image: debian/stable
+packages:
+  - podman
+sources:
+  - https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data
+secrets:
+  - f7847d8d-f3db-49d9-b4ce-d438a47db5ee
+tasks:
+  - container: |
+      cd fluent-bit-output-plugin-aws-cloudtrail-data/container
+
+      set +x
+      podman login --authfile $HOME/.docker/config.json quay.io
+      set -x
+
+      QUAY_REPO=quay.io/wombelix/fluent-bit-aws-cloudtrail-data
+      GIT_SHA=$(git rev-parse --short HEAD)
+
+      podman build -t ${QUAY_REPO}:${GIT_SHA} .
+      podman push ${QUAY_REPO}:${GIT_SHA}
+
+      GIT_BRANCH=$(git branch --points-at=${GIT_SHA} | tail -n1 | tr -d '* ')
+      if [ "${GIT_BRANCH}" = "main" ]; then
+        podman tag ${QUAY_REPO}:${GIT_SHA} ${QUAY_REPO}:main
+        podman push ${QUAY_REPO}:main
+      fi
+
+      GIT_TAG=$(git tag --points-at=${GIT_SHA})
+      if [ -n "${GIT_TAG}" ]; then
+        podman tag ${QUAY_REPO}:${GIT_SHA} ${QUAY_REPO}:${GIT_TAG}
+        podman push ${QUAY_REPO}:${GIT_TAG}
+
+        podman tag ${QUAY_REPO}:${GIT_SHA} ${QUAY_REPO}:latest
+        podman push ${QUAY_REPO}:latest
+      fi
+
+triggers:
+  - action: email
+    condition: failure
+    to: dominik@wombacher.cc
