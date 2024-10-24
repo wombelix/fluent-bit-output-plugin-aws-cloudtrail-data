@@ -11,12 +11,92 @@ through the CloudTrail Data Service by calling
 [PutAuditEvents](https://docs.aws.amazon.com/awscloudtraildata/latest/APIReference/API_PutAuditEvents.html).
 
 [![REUSE status](https://api.reuse.software/badge/git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data)](https://api.reuse.software/info/git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data)
+[![Docker Repository on Quay](https://quay.io/repository/wombelix/fluent-bit-aws-cloudtrail-data/status)](https://quay.io/repository/wombelix/fluent-bit-aws-cloudtrail-data)
 
 ## Table of Contents
 
+* [Release](#release)
+* [Build](#build)
+* [Run](#run)
 * [Source](#source)
 * [Contribute](#contribute)
 * [License](#license)
+
+## Release
+
+Container images are automatically build from the
+[Gitlab mirror](https://gitlab.com/wombelix/fluent-bit-output-plugin-aws-cloudtrail-data)
+and published on
+[Quay.io](https://quay.io/repository/wombelix/fluent-bit-aws-cloudtrail-data).
+The `latest` tag follows the `main` branch, `vX.Y.X` tags match the git tags.
+
+Automated publication of the pre-build binary `aws-cloudtrail-data.so`
+is planned but not yet implemented.
+
+## Build
+
+To build from source you need `go` in version `1.22.7` or higher installed on
+your system. Then clone the repository and run `go build`, example:
+
+```
+git clone https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data
+
+cd fluent-bit-output-plugin-aws-cloudtrail-data
+
+go build -buildmode=c-shared -o aws-cloudtrail-data.so .
+```
+
+## Run
+
+To get started, you need a
+[Event data store](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/query-event-data-store.html)
+with a
+[custom integration](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/query-event-data-store-integration-custom.html)
+in
+[AWS CloudTrail Lake](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-lake.html).
+
+The Fluent Bit parameter `ChannelArn` or Environment variable `AWS_CLOUDTRAIL_DATA_CHANNELARN`
+is required and has to be set to the Arn of your custom integration.
+
+You also have to modify your IAM Role of the User or Service
+that runs Fluent Bit to allow `PutAuditEvents` to the Channel, example:
+
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "cloudtrail-data:PutAuditEvents"
+            ],
+            "Resource": "arn:aws:cloudtrail:<region>>:<account>>:channel/<integration>"
+        }
+    ]
+}
+```
+
+Further reading:
+[AWS CloudTrail resource-based policy examples](https://docs.aws.amazon.com/awscloudtrail/latest/userguide/security_iam_resource-based-policy-examples.html)
+
+The plugin will load your AWS config based on the default credential chain
+of the AWS SDK Go v2. Further reading:
+[Specifying Credentials](https://aws.github.io/aws-sdk-go-v2/docs/configuring-sdk/#specifying-credentials)
+
+Please ensure that the Environment variable `AWS_REGION` is set to the
+to region of your Integration Channel. This might be required even
+with a successful credential auto discover.
+
+Depending on how you run `fluent-bit` you have to adjust the parameter
+to load the plugin and use it as output, example:
+
+```
+fluent-bit -e ./aws-cloudtrail-data.so -o aws-cloudtrail-data -p ChannelArn=arn:aws:cloudtrail:<region>:<account>:channel/<integration>
+```
+
+The plugin supports the Fluent Bit debug environment variable `FLB_LOG_LEVEL`.
+If the variable exist and is set to `DEBUG`,
+it enables the Debug output of the plugin too.
 
 ## Source
 
