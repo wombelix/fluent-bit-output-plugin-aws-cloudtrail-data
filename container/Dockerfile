@@ -8,9 +8,9 @@ FROM docker.io/golang:1.22.7 as builder
 
 RUN git clone https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data /aws-cloudtrail-data
 WORKDIR /aws-cloudtrail-data
-RUN mkdir dist
-RUN go build -buildmode=c-shared -o aws-cloudtrail-data.so .
-RUN cp -r README.md \
+RUN mkdir dist \
+    && go build -buildmode=c-shared -o aws-cloudtrail-data.so . \
+    && cp -r README.md \
     CHANGELOG.md \
     CHANGELOG.md.license \
     LICENSES/ \
@@ -18,7 +18,17 @@ RUN cp -r README.md \
 
 
 # Release image
-FROM cr.fluentbit.io/fluent/fluent-bit:latest
+FROM cr.fluentbit.io/fluent/fluent-bit:3.1.9
+
+LABEL description="Fluent Bit AWS CloudTrail Data container image" \
+    author="Dominik Wombacher <dominik@wombacher.cc>" \
+    org.opencontainers.image.description="Fluent Bit AWS CloudTrail Data container image" \
+    org.opencontainers.image.title="Fluent Bit AWS CloudTrail Data" \
+    org.opencontainers.image.licenses="Apache-2.0" \
+    org.opencontainers.image.source="https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data" \
+    org.opencontainers.image.documentation="https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data" \
+    org.opencontainers.image.authors="Dominik Wombacher <dominik@wombacher.cc>" \
+    org.opencontainers.image.base.name="cr.fluentbit.io/fluent/fluent-bit:latest"
 
 ARG AWS_CLOUDTRAIL_DATA_CHANNELARN
 ENV AWS_CLOUDTRAIL_DATA_CHANNELARN=$AWS_CLOUDTRAIL_DATA_CHANNELARN
