@@ -2,6 +2,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
+# CloudTrail Lake Event store integration Arn. More information: https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data#run
+channelArn: ""
+
+# Standalone Helm deployment: "neuvector", Rancher Deployment: "cattle-neuvector-system"
+namespace: "neuvector"
+
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
 replicaCount: 1
 
@@ -51,12 +57,16 @@ securityContext: {}
 
 # This is for setting up a service more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/
 service:
-  # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
-  type: ClusterIP
-  # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
-  port: 5140
-  protocol: TCP
-  targetPort: syslog
+  syslog:
+    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+    port: 5140
+  monitoring:
+    # This sets the service type more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#publishing-services-service-types
+    type: ClusterIP
+    # This sets the ports more information can be found here: https://kubernetes.io/docs/concepts/services-networking/service/#field-spec-ports
+    port: 2020
 
 resources: {}
   # We usually recommend not to specify default resources and to leave this as a conscious
@@ -72,13 +82,17 @@ resources: {}
 
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
 livenessProbe:
-  httpGet:
-    path: /
-    port: http
+  tcpSocket:
+    port: 5140
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  failureThreshold: 3
 readinessProbe:
-  httpGet:
-    path: /
-    port: http
+  tcpSocket:
+    port: 5140
+  initialDelaySeconds: 15
+  periodSeconds: 15
+  failureThreshold: 3
 
 #This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
 autoscaling:

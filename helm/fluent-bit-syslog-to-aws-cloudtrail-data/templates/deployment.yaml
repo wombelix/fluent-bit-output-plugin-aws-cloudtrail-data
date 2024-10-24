@@ -6,6 +6,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "fluent-bit-syslog-to-aws-cloudtrail-data.fullname" . }}
+  namespace: {{ .Values.namespace }}
   labels:
     {{- include "fluent-bit-syslog-to-aws-cloudtrail-data.labels" . | nindent 4 }}
 spec:
@@ -40,9 +41,20 @@ spec:
             {{- toYaml .Values.securityContext | nindent 12 }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /fluent-bit/bin/fluent-bit
+          args:
+            - -i syslog
+            - -o aws-cloudtrail-data
+          env:
+            - name: AWS_CLOUDTRAIL_DATA_CHANNELARN
+              value: {{ .Values.channelArn }}
           ports:
+            - name: syslog
+              containerPort: {{ .Values.service.syslog.port }}
+              protocol: TCP
             - name: http
-              containerPort: {{ .Values.service.port }}
+              containerPort: {{ .Values.service.monitoring.port }}
               protocol: TCP
           livenessProbe:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
@@ -52,10 +64,16 @@ spec:
             {{- toYaml .Values.resources | nindent 12 }}
           {{- with .Values.volumeMounts }}
           volumeMounts:
+            - name: "configmap-{{ include "fluent-bit-syslog-to-aws-cloudtrail-data.fullname" . }}"
+              mountPath: /etc/fluent-bit
+              readOnly: true
             {{- toYaml . | nindent 12 }}
           {{- end }}
       {{- with .Values.volumes }}
       volumes:
+        - name: "configmap-{{ include "fluent-bit-syslog-to-aws-cloudtrail-data.fullname" . }}"
+          configMap:
+            name: {{ include "fluent-bit-syslog-to-aws-cloudtrail-data.fullname" . }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
       {{- with .Values.nodeSelector }}
