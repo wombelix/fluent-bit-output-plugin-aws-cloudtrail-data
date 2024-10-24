@@ -11,7 +11,7 @@ through the CloudTrail Data Service by calling
 [PutAuditEvents](https://docs.aws.amazon.com/awscloudtraildata/latest/APIReference/API_PutAuditEvents.html).
 
 [![REUSE status](https://api.reuse.software/badge/git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data)](https://api.reuse.software/info/git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data)
-[![Docker Repository on Quay](https://quay.io/repository/wombelix/fluent-bit-aws-cloudtrail-data/status)](https://quay.io/repository/wombelix/fluent-bit-aws-cloudtrail-data)
+[![builds.sr.ht status](https://builds.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data.svg)](https://builds.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data?)
 
 ## Table of Contents
 
@@ -24,11 +24,14 @@ through the CloudTrail Data Service by calling
 
 ## Release
 
-Container images are automatically build from the
-[Gitlab mirror](https://gitlab.com/wombelix/fluent-bit-output-plugin-aws-cloudtrail-data)
-and published on
+Container images are automatically
+[build and pushed](https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data/tree/main/item/.build.yml)
+to
 [Quay.io](https://quay.io/repository/wombelix/fluent-bit-aws-cloudtrail-data).
-The `latest` tag follows the `main` branch, `vX.Y.X` tags match the git tags.
+Every image is tagged with the git commit hash.
+The `main` tag follows the git branch `main`.
+`vX.Y.X` tags match the git tags and `latest`
+points to the most recent release version.
 
 Automated publication of the pre-build binary `aws-cloudtrail-data.so`
 is planned but not yet implemented.
