@@ -19,6 +19,9 @@ enableStandardOutput: false
 # - Rancher Deployment: "cattle-neuvector-system"
 namespace: "default"
 
+# Inject additional environment variables into fluent bit pod
+env: []
+
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
 replicaCount: 1
 

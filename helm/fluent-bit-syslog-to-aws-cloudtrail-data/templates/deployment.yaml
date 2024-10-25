@@ -45,6 +45,9 @@ spec:
             - -i syslog
             - -o aws-cloudtrail-data
           env:
+          {{- with .Values.env }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
             - name: AWS_CLOUDTRAIL_DATA_CHANNELARN
               value: {{ required "Required: CloudTrail Lake Event store integration Arn." .Values.channelArn }}
             {{- if .Values.debug }}
