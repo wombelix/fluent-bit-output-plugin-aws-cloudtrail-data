@@ -60,10 +60,10 @@ spec:
             {{- end }}
           ports:
             - name: syslog
-              containerPort: {{ .Values.service.syslog.port }}
+              containerPort: 5140
               protocol: TCP
             - name: http
-              containerPort: {{ .Values.service.monitoring.port }}
+              containerPort: 2020
               protocol: TCP
           livenessProbe:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
