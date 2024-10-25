@@ -50,7 +50,7 @@ Example:
 ```
 helm install syslog-to-aws-cloudtrail-data \
     --namespace neuvector
-    --version 0.0.1 \
+    --version 0.2.0 \
     oci://quay.io/repository/wombelix/fluent-bit-syslog-to-aws-cloudtrail-data \
     --values values.yaml
 ```

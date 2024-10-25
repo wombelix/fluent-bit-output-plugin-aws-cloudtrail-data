@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	Version     = "0.0.1"
+	Version     = "0.2.0"
 	eventSource = "fluent-bit-output-plugin-aws-cloudtrail-data"
 	eventName   = "Fluent Bit: Output Plugin for AWS CloudTrail Data Service"
 )
