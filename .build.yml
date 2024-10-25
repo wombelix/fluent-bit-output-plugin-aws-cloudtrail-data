@@ -41,13 +41,11 @@ tasks:
   - helm: |
       cd fluent-bit-output-plugin-aws-cloudtrail-data/helm
 
-      set +x
-      helm registry login --registry-config $HOME/.docker/config.json quay.io
-      set -x
-
       helm package fluent-bit-syslog-to-aws-cloudtrail-data
 
-      helm push fluent-bit-syslog-to-aws-cloudtrail-data-*.tgz oci://quay.io/wombelix
+      set +x
+      helm --registry-config $HOME/.docker/config.json push fluent-bit-syslog-to-aws-cloudtrail-data-*.tgz oci://quay.io/wombelix
+      set -x
 
 triggers:
   - action: email
