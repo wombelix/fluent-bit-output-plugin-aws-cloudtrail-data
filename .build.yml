@@ -5,6 +5,7 @@
 image: archlinux
 packages:
   - podman
+  - helm
 sources:
   - https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data
 secrets:
@@ -37,6 +38,16 @@ tasks:
         podman tag ${QUAY_REPO}:${GIT_SHA} ${QUAY_REPO}:latest
         podman push ${QUAY_REPO}:latest
       fi
+  - helm: |
+      cd fluent-bit-output-plugin-aws-cloudtrail-data/helm
+
+      set +x
+      helm registry login --registry-config $HOME/.docker/config.json quay.io
+      set -x
+
+      helm package fluent-bit-syslog-to-aws-cloudtrail-data
+
+      helm push fluent-bit-syslog-to-aws-cloudtrail-data-*.tgz oci://quay.io/wombelix
 
 triggers:
   - action: email
