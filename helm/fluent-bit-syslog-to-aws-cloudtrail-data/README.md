@@ -33,11 +33,23 @@ on every new commit to the git repository.
 
 ## Run
 
+The plugin, container and helm chart was initially developed to push
+[NeuVector](https://github.com/neuvector/neuvector)
+logs and events to AWS CloudTrail Lake. The chart is generic and
+can be used with any software or system that supports Syslog.
+
 Use `helm install` to deploy the chart, ensure to set the version
-and the path to a customized `values.yaml` accordingly.
+and the path to a customized `values.yaml`.
+
+For usage with NeuVector, it's recommend to deploy in the same namespace.
+Adjust the `namespace` parameter accordingly, for a standalone Helm deployment
+`neuvector` and for a Rancher deployment `cattle-neuvector-system`.
+
+Example:
 
 ```
 helm install syslog-to-aws-cloudtrail-data \
+    --namespace neuvector
     --version 0.0.1 \
     oci://quay.io/repository/wombelix/fluent-bit-syslog-to-aws-cloudtrail-data \
     --values values.yaml
@@ -56,15 +68,6 @@ of the `aws-cloudtrail-data` plugin.
 
 Optional, but helpful for troubleshooting purposes, is to set
 `debug` and/or `enableStandardOutput` to `true`.
-
-The plugin, container and helm chart was initially developed to push
-[NeuVector](https://github.com/neuvector/neuvector)
-logs and events to AWS CloudTrail Lake. The chart is generic and
-can be used with any software or system that supports Syslog.
-
-For usage with NeuVector, it's recommend to deploy in the same namespace.
-Adjust the `namespace` value accordingly, for a standalone Helm deployment
-`neuvector` and for a Rancher deployment `cattle-neuvector-system`.
 
 ## Source
 

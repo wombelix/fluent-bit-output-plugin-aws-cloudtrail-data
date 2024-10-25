@@ -14,11 +14,6 @@ debug: false
 # Send fluent bit records additional to stdout
 enableStandardOutput: false
 
-# NeuVector
-# - Standalone Helm deployment: "neuvector"
-# - Rancher Deployment: "cattle-neuvector-system"
-namespace: "default"
-
 # Inject additional environment variables into fluent bit pod
 env: []
 
