@@ -33,6 +33,16 @@ on every new commit to the git repository.
 
 ## Run
 
+Use `helm install` to deploy the chart, ensure to set the version
+and the path to a customized `values.yaml` accordingly.
+
+```
+helm install syslog-to-aws-cloudtrail-data \
+    --version 0.0.1 \
+    oci://quay.io/repository/wombelix/fluent-bit-syslog-to-aws-cloudtrail-data \
+    --values values.yaml
+```
+
 Please refer to
 [values.yaml](https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data/tree/main/item/helm/fluent-bit-syslog-to-aws-cloudtrail-data/values.yaml)
 for a complete overview of all available configuration options.
