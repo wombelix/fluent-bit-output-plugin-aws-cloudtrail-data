@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.2.0 (2024-10-25)
+
+### Feat
+
+- **Helm**: Allow setting additional env vars in values.yaml
+- **helm**: configmap added, further config values added, cleanup template code
+
+### Fix
+
+- **Helm**: Move namespace definition from values to helm parameter
+- **Helm**: Bug fixes, renaming, svc values flattened
+- **Helm**: NOTES file adjusted to provide syslog svc url after deployment
+
 ## v0.1.0 (2024-10-24)
 
 ### Feat
