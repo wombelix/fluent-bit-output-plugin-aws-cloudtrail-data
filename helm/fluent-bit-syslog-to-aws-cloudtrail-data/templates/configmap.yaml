@@ -70,15 +70,15 @@ data:
       Path /fluent-bit/aws-cloudtrail-data.so
   input-syslog.conf: |
     [INPUT]
-      Name     syslog
-      Parser   syslog-rfc3164
-      Listen   0.0.0.0
-      Port     5140
-      Mode     tcp
+      Name    syslog
+      Parser  syslog-rfc3164
+      Listen  0.0.0.0
+      Port    5140
+      Mode    tcp
   output-stdout.conf: |
     [OUTPUT]
-        Name  stdout
-        Match *
+      Name    stdout
+      Match   *
   aws-cloudtrail-data.conf: |
     [OUTPUT]
-        Name  aws-cloudtrail-data
+      Name    aws-cloudtrail-data

@@ -41,9 +41,6 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
             - /fluent-bit/bin/fluent-bit
-          args:
-            - -i syslog
-            - -o aws-cloudtrail-data
           env:
           {{- with .Values.env }}
             {{- toYaml . | nindent 12 }}
@@ -71,20 +68,20 @@ spec:
             {{- toYaml .Values.readinessProbe | nindent 12 }}
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
-          {{- with .Values.volumeMounts }}
           volumeMounts:
+          {{- with .Values.volumeMounts }}
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
             - name: "configmap-{{ include "fluent-bit-syslog-to-aws-cloudtrail-data.fullname" . }}"
               mountPath: /etc/fluent-bit
               readOnly: true
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-      {{- with .Values.volumes }}
       volumes:
+      {{- with .Values.volumes }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
         - name: "configmap-{{ include "fluent-bit-syslog-to-aws-cloudtrail-data.fullname" . }}"
           configMap:
             name: {{ include "fluent-bit-syslog-to-aws-cloudtrail-data.fullname" . }}
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
       {{- with .Values.nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
