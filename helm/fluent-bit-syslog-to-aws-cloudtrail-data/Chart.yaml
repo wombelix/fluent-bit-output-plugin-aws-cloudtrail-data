@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 apiVersion: v2
-name: syslog-to-aws-cloudtrail
+name: fluent-bit-syslog-to-aws-cloudtrail-data
 description: A Helm helm for Kubernetes to push Syslog messages to AWS CloudTrail Data with Fluent Bit
 
 # A helm can be either an 'application' or a 'library' helm.
