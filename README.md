@@ -115,7 +115,7 @@ and
 ## Contribute
 
 Please don't hesitate to provide Feedback,
-open an Issue or create an Pull / Merge Request.
+open an Issue or create a Pull / Merge Request.
 
 Just pick the workflow or platform you prefer and are most comfortable with.
 
