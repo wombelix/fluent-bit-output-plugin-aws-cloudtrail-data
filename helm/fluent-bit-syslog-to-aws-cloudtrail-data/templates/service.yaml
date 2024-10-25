@@ -5,15 +5,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: "{{ include "fluent-bit-syslog-to-aws-cloudtrail-data.fullname" . }}-syslog"
+  name: {{ include "fluent-bit-syslog-to-aws-cloudtrail-data.fullname" . }}-syslog
   namespace: {{ .Values.namespace }}
   labels:
     {{- include "fluent-bit-syslog-to-aws-cloudtrail-data.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  type: {{ .Values.service.syslog.type }}
   ports:
     - port: {{ .Values.service.syslog.port }}
-      targetPort: syslog
+      targetPort: 5140
       protocol: TCP
       name: syslog
   selector:
@@ -24,7 +24,7 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: "{{ include "fluent-bit-syslog-to-aws-cloudtrail-data.fullname" . }}-monitoring"
+  name: {{ include "fluent-bit-syslog-to-aws-cloudtrail-data.fullname" . }}-monitoring
   namespace: {{ .Values.namespace }}
   labels:
     {{- include "fluent-bit-syslog-to-aws-cloudtrail-data.labels" . | nindent 4 }}

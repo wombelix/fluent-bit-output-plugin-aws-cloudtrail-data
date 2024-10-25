@@ -10,9 +10,7 @@ metadata:
   labels:
     {{- include "fluent-bit-syslog-to-aws-cloudtrail-data.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
-  {{- end }}
   selector:
     matchLabels:
       {{- include "fluent-bit-syslog-to-aws-cloudtrail-data.selectorLabels" . | nindent 6 }}
@@ -48,7 +46,15 @@ spec:
             - -o aws-cloudtrail-data
           env:
             - name: AWS_CLOUDTRAIL_DATA_CHANNELARN
-              value: {{ .Values.channelArn }}
+              value: {{ required "Required: CloudTrail Lake Event store integration Arn." .Values.channelArn }}
+            {{- if .Values.debug }}
+            - name: FLB_LOG_LEVEL
+              value: DEBUG
+            {{- end }}
+            {{- if .Values.awsRegion }}
+            - name: AWS_REGION
+              value: {{ .Values.awsRegion }}
+            {{- end }}
           ports:
             - name: syslog
               containerPort: {{ .Values.service.syslog.port }}

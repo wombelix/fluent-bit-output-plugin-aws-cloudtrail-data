@@ -2,11 +2,22 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-# CloudTrail Lake Event store integration Arn. More information: https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data#run
+# Required: CloudTrail Lake Event store integration Arn. More information: https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data#run
 channelArn: ""
 
-# Standalone Helm deployment: "neuvector", Rancher Deployment: "cattle-neuvector-system"
-namespace: "neuvector"
+# Set AWS Region as Environment variable
+awsRegion: ""
+
+# Enable Fluent Bit Debug log level
+debug: false
+
+# Send fluent bit records additional to stdout
+enableStandardOutput: false
+
+# NeuVector
+# - Standalone Helm deployment: "neuvector"
+# - Rancher Deployment: "cattle-neuvector-system"
+namespace: "default"
 
 # This will set the replicaset count more information can be found here: https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/
 replicaCount: 1
@@ -32,6 +43,12 @@ serviceAccount:
   # Automatically mount a ServiceAccount's API credentials?
   automount: true
   # Annotations to add to the service account
+  #
+  # EKS IRSA (https://docs.aws.amazon.com/eks/latest/userguide/iam-roles-for-service-accounts.html) Example:
+  #
+  #   annotations:
+  #     eks.amazonaws.com/role-arn: arn:aws:iam::111122223333:role/MyRole
+  #
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
@@ -93,14 +110,6 @@ readinessProbe:
   initialDelaySeconds: 15
   periodSeconds: 15
   failureThreshold: 3
-
-#This section is for setting up autoscaling more information can be found here: https://kubernetes.io/docs/concepts/workloads/autoscaling/
-autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
-  # targetMemoryUtilizationPercentage: 80
 
 # Additional volumes on the output Deployment definition.
 volumes: []
