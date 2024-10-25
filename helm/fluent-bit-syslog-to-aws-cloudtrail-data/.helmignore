@@ -25,3 +25,7 @@
 .idea/
 *.tmproj
 .vscode/
+
+# File required to satisfy reuse report but has to be excluded from helm package, causes error:
+# 'UPGRADE FAILED: error validating "": error validating data: [apiVersion not set, kind not set]'
+NOTES.txt.license
