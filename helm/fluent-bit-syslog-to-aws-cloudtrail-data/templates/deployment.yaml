@@ -73,7 +73,7 @@ spec:
             {{- toYaml . | nindent 12 }}
           {{- end }}
             - name: "configmap-{{ include "fluent-bit-syslog-to-aws-cloudtrail-data.fullname" . }}"
-              mountPath: /etc/fluent-bit
+              mountPath: /fluent-bit/etc/
               readOnly: true
       volumes:
       {{- with .Values.volumes }}
