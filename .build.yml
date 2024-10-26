@@ -41,7 +41,14 @@ tasks:
   - helm: |
       cd fluent-bit-output-plugin-aws-cloudtrail-data/helm
 
-      helm package fluent-bit-syslog-to-aws-cloudtrail-data
+      GIT_SHA=$(git rev-parse --short HEAD)
+      GIT_TAG=$(git tag --points-at=${GIT_SHA})
+      if [ -n "${GIT_TAG}" ]; then
+        helm package fluent-bit-syslog-to-aws-cloudtrail-data
+      else
+        sed -i "/^version/ s/$/-main+${GIT_SHA}/" fluent-bit-syslog-to-aws-cloudtrail-data/Chart.yaml
+        helm package fluent-bit-syslog-to-aws-cloudtrail-data
+      fi
 
       set +x
       helm --registry-config $HOME/.docker/config.json push fluent-bit-syslog-to-aws-cloudtrail-data-*.tgz oci://quay.io/wombelix

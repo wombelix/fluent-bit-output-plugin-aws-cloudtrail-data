@@ -30,6 +30,12 @@ The Helm Chart is automatically
 to
 [Quay.io](https://quay.io/repository/wombelix/fluent-bit-syslog-to-aws-cloudtrail-data)
 on every new commit to the git repository.
+Chart versions in format `X.Y.Z`, e.g. `0.2.0`, link to the
+git tag and release. Development / Pre-Release versions are
+based on `main` branch commits and have the format
+`X.Y.Z-main+<GIT_SHA>`, e.g. `0.2.0-main+e829413`.
+This means, based on last release version plus
+main branch changes up to the commit hash.
 
 ## Run
 
