@@ -37,6 +37,14 @@ based on `main` branch commits and have the format
 This means, based on last release version plus
 main branch changes up to the commit hash.
 
+*Important*: Version tags like `0.2.0-main+e829413` will show up in the
+OCI registry as `0.2.0-main_e829413`. This is an expected behavior:
+
+> OCI artifact references (e.g. tags) do not support the plus sign (+).
+> To support storing semantic versions, Helm adopts the convention of
+> changing plus (+) to an underscore (_) in chart version tags when
+> pushing to a registry and back to a plus (+) when pulling from a registry.
+
 ## Run
 
 The plugin, container and helm chart was initially developed to push
@@ -51,12 +59,22 @@ For usage with NeuVector, it's recommend to deploy in the same namespace.
 Adjust the `namespace` parameter accordingly, for a standalone Helm deployment
 `neuvector` and for a Rancher deployment `cattle-neuvector-system`.
 
-Example:
+Example (Release)
 
 ```
 helm install syslog-to-aws-cloudtrail-data \
     --namespace neuvector
     --version 0.2.0 \
+    oci://quay.io/repository/wombelix/fluent-bit-syslog-to-aws-cloudtrail-data \
+    --values values.yaml
+```
+
+Example (Dev / Pre-Release)
+
+```
+helm install syslog-to-aws-cloudtrail-data \
+    --namespace neuvector
+    --version 0.2.0-main+e829413 \
     oci://quay.io/repository/wombelix/fluent-bit-syslog-to-aws-cloudtrail-data \
     --values values.yaml
 ```
