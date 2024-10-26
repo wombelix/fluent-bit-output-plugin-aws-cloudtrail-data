@@ -6,6 +6,11 @@ apiVersion: v2
 name: fluent-bit-syslog-to-aws-cloudtrail-data
 description: A Helm helm for Kubernetes to push Syslog messages to AWS CloudTrail Data with Fluent Bit
 
+maintainers:
+  - name: Dominik Wombacher
+    email: dominik@wombacher.cc
+    url: https://dominik.wombacher.cc
+
 # A helm can be either an 'application' or a 'library' helm.
 #
 # Application charts are a collection of templates that can be packaged into versioned archives
