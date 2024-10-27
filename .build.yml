@@ -8,9 +8,27 @@ packages:
   - helm
 sources:
   - https://git.sr.ht/~wombelix/fluent-bit-output-plugin-aws-cloudtrail-data
+  - https://git.sr.ht/~wombelix/build-helper-scripts
 secrets:
   - f7847d8d-f3db-49d9-b4ce-d438a47db5ee
+  - 5b076ab5-1361-4d71-905b-4ff8c836c62c
+environment:
+  GIT_MIRROR_SSH_KEY: ~/.ssh/5b076ab5-1361-4d71-905b-4ff8c836c62c
+  GIT_MIRROR_GITHUB: git@github.com:wombelix/fluent-bit-output-plugin-aws-cloudtrail-data.git
+  GIT_MIRROR_GITLAB: git@gitlab.com:wombelix/fluent-bit-output-plugin-aws-cloudtrail-data.git
+  GIT_MIRROR_CODEBERG: git@codeberg.org:wombelix/fluent-bit-output-plugin-aws-cloudtrail-data.git
 tasks:
+  - mirror: |
+      cd build-helper-scripts
+      source git-mirror.sh
+      cd ..
+
+      cd fluent-bit-output-plugin-aws-cloudtrail-data
+
+      git_mirror "$GIT_MIRROR_SSH_KEY" "$GIT_MIRROR_GITHUB"
+      git_mirror "$GIT_MIRROR_SSH_KEY" "$GIT_MIRROR_GITLAB"
+      git_mirror "$GIT_MIRROR_SSH_KEY" "$GIT_MIRROR_CODEBERG"
+
   - container: |
       cd fluent-bit-output-plugin-aws-cloudtrail-data/container
 
@@ -38,6 +56,7 @@ tasks:
         podman tag ${QUAY_REPO}:${GIT_SHA} ${QUAY_REPO}:latest
         podman push ${QUAY_REPO}:latest
       fi
+
   - helm: |
       cd fluent-bit-output-plugin-aws-cloudtrail-data/helm
 
