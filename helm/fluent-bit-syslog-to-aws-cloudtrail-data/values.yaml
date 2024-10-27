@@ -14,6 +14,9 @@ debug: false
 # Send fluent bit records additional to stdout
 enableStandardOutput: false
 
+# Override Fluent Bit Syslog parser. Default: syslog-rfc5424. More information can be found here: https://docs.fluentbit.io/manual/pipeline/inputs/syslog
+fluentbitSyslogParser: ""
+
 # Inject additional environment variables into fluent bit pod
 env: []
 
