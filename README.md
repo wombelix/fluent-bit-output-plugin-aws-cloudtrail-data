@@ -34,7 +34,13 @@ The `main` tag follows the git branch `main`.
 points to the most recent release version.
 
 Automated publication of the pre-build binary `aws-cloudtrail-data.so`
-is planned but not yet implemented.
+is planned but not yet implemented. You have to [build it by yourself](#build).
+
+A Helm Chart to receive Syslog events and push to
+AWS Cloudtrail Data via Fluent Bit is available as well:
+[Chart Repository](https://quay.io/repository/wombelix/fluent-bit-syslog-to-aws-cloudtrail-data)
+and
+[Source Repository](https://git.sr.ht/~wombelix/chart-fluent-bit-syslog-to-aws-cloudtrail-data)
 
 ## Build
 
@@ -73,7 +79,7 @@ that runs Fluent Bit to allow `PutAuditEvents` to the Channel, example:
             "Action": [
                 "cloudtrail-data:PutAuditEvents"
             ],
-            "Resource": "arn:aws:cloudtrail:<region>>:<account>>:channel/<integration>"
+            "Resource": "arn:aws:cloudtrail:<region>:<account>:channel/<integration>"
         }
     ]
 }
