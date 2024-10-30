@@ -8,10 +8,6 @@ type Params struct {
 	ChannelArn string
 }
 
-type PutAuditEvents struct {
-	AuditEvents []AuditEvent `json:"auditEvents"`
-}
-
 type AuditEvent struct {
 	EventData string `json:"eventData"`
 	Id        string `json:"id"`

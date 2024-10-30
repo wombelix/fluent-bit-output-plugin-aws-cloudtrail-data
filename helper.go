@@ -5,8 +5,8 @@
 package main
 
 import (
-	"bytes"
 	"C"
+	"bytes"
 	"fmt"
 	"time"
 )
@@ -21,12 +21,4 @@ func recordToString(count int, tag *C.char, timestamp time.Time, record map[inte
 	buffer.WriteString("}\n")
 
 	return buffer.String()
-}
-
-func printRecord(count int, tag *C.char, timestamp time.Time, record map[interface{}]interface{}) {
-	fmt.Printf("[%d] %s: [%s, {", count, C.GoString(tag), timestamp.String())
-	for k, v := range parseMap(record) {
-		fmt.Printf("\"%s\": %v, ", k, v)
-	}
-	fmt.Print("}\n")
 }
